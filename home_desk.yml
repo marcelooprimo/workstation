@@ -48,7 +48,7 @@
         shell:
           cmd: ufw enable
         become: true
-    - name: Configuring Tilix - creating symbolic link
+      - name: Configuring Tilix - creating symbolic link
         shell:
           cmd: 'ln -s /etc/profile.d/vte-2.91.sh /etc/profile.d/vte.sh'
         become: true
@@ -147,6 +147,13 @@
           - CoenraadS.bracket-pair-colorizer
           - redhat.vscode-yaml
           - vscode-icons-team.vscode-icons
+          - ms-vscode.cpptools
+          - golang.go
+          - oderwat.indent-rainbow
+          - ms-azuretools.vscode-docker
+          - ms-kubernetes-tools.vscode-kubernetes-tools
+          - hashicorp.terraform
+          - bbenoist.vagrant
 
     - block:
       - name: Adding Ulauncher Repository
