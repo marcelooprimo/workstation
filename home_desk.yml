@@ -1,0 +1,159 @@
+---
+- name: Preparing Workstation
+  hosts: localhost
+  connection: local
+  tasks:
+
+    - name: Installing Linux Apps
+      become: true
+      apt:
+        name: '{{ item }}'
+        install_recommends: yes
+        state: present
+      loop:
+          - vim
+          - htop
+          - curl
+          - conky-all
+          - wget
+          - unzip
+          - tree
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - python3-pip
+          - make
+          - git
+          - bash-completion
+          - gnupg-agent
+          - zsh
+          - flameshot
+          - fonts-hack
+          - tilix
+          - virtualbox
+          - mlocate
+          - gimp
+          - pinta
+          - timeshift
+          - jq
+          - mtr
+          - gnome-tweak-tool
+
+    - block:
+      - name: Changing hostname
+        shell:
+          cmd: 'echo "lumpalumpa" > /etc/hostname'
+        become: true
+      - name: Enabling Firewall
+        shell:
+          cmd: ufw enable
+        become: true
+    - name: Configuring Tilix - creating symbolic link
+        shell:
+          cmd: 'ln -s /etc/profile.d/vte-2.91.sh /etc/profile.d/vte.sh'
+        become: true
+      - name: Configuring Tilix - Add .zshrc lines
+        shell:
+          cmd: echo "\nif [ \$TILIX_ID ] || [ \$VTE_VERSION ]; then\n\tsource /etc/profile.d/vte.sh\nfi" >> /home/{{ ansible_user_id }}/.zshrc
+
+    - block:
+      - name: Verify if Oh-My-zsh is installed
+        command: test -d /home/{{ ansible_user_id }}/.oh-my-zsh
+        register: ohmyzsh
+        ignore_errors: true
+      - name: Installing Oh-My-zsh
+        shell:
+          cmd: 'curl -fsL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash'
+          warn: false
+        when: ohmyzsh.rc != 0
+      - name: Changing Default Shell to ZSH
+        become: true
+        user: 
+          name: '{{ ansible_user_id }}'
+          shell: /bin/zsh
+      - name: Verifying if powerlevel10k folder exist
+        stat:
+          path: "/home/{{ ansible_user_id }}/.oh-my-zsh/custom/themes/powerlevel10k"
+        register: powerlevel10k
+      - name: Adding powerlevel10k theme
+        shell:
+          cmd: 'git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k'
+        when: not powerlevel10k.stat.exists and powerlevel10k.stat.isdir
+      - name: Changing Default ZSH Theme to powerlevel10k
+        lineinfile:
+          path: /home/{{ ansible_user_id }}/.zshrc
+          regexp: '^ZSH_THEME='
+          line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+      - name: Verifying if powerlevel10k folder exist
+        stat:
+          path: "/home/{{ ansible_user_id }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+        register: autosuggestions
+      - name: Adding zsh-autosuggestions
+        shell:
+          cmd: 'git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions'
+        when: not autosuggestions.stat.exists and autosuggestions.stat.isdir
+      - name: Enabling zsh-autosuggestions
+        lineinfile:
+          path: /home/{{ ansible_user_id }}/.zshrc
+          regexp: '^plugins='
+          line: 'plugins=(git zsh-autosuggestions)'
+
+      - name: Adding autoload to compinit
+        lineinfile:
+          path: /home/{{ ansible_user_id }}/.zshrc
+          line: 'autoload -U compinit && compinit'
+          state: present
+
+
+    - block:
+      - name: Install Google Key
+        become: true
+        apt_key: 
+          url: 'https://dl.google.com/linux/linux_signing_key.pub'
+          state: present
+      - name: Install Google Repository
+        become: true
+        apt_repository:
+          repo: 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main'
+          state: present
+          filename: google-chrome
+      - name: Install Google Chrome
+        become: true
+        apt:
+          name: google-chrome-stable
+
+          
+    - block:
+      - name: Install Microsoft Key
+        become: true
+        apt_key:
+          url: 'https://packages.microsoft.com/keys/microsoft.asc'
+          state: present
+      - name: Install VSCode Repository
+        become: true
+        apt_repository:
+          repo: 'deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main'
+          state: present
+          filename: vscode
+      - name: Install Visual Studio Code
+        become: true
+        apt:
+          name: code
+      - name: Install Virtual Studio Code Extensions
+        shell:
+          cmd: code --install-extension '{{ item }}' 
+        loop: 
+          - ms-python.python
+          - CoenraadS.bracket-pair-colorizer
+          - redhat.vscode-yaml
+          - vscode-icons-team.vscode-icons
+
+    - block:
+      - name: Adding Ulauncher Repository
+        become: true
+        apt_repository:
+          repo: 'ppa:agornostal/ulauncher'
+      - name: Install Ulauncher
+        become: true
+        apt:
+          name: ulauncher
