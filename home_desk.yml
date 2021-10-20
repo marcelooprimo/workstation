@@ -52,13 +52,6 @@
         shell:
           cmd: ufw enable
         become: true
-      - name: Configuring Tilix - creating symbolic link
-        shell:
-          cmd: 'ln -s /etc/profile.d/vte-2.91.sh /etc/profile.d/vte.sh'
-        become: true
-      - name: Configuring Tilix - Add .zshrc lines
-        shell:
-          cmd: echo "\nif [ \$TILIX_ID ] || [ \$VTE_VERSION ]; then\n\tsource /etc/profile.d/vte.sh\nfi" >> /home/{{ ansible_user_id }}/.zshrc
 
     - block:
       - name: Verify if Oh-My-zsh is installed
@@ -82,7 +75,7 @@
       - name: Adding powerlevel10k theme
         shell:
           cmd: 'git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k'
-        when: not powerlevel10k.stat.exists and powerlevel10k.stat.isdir
+        when: not powerlevel10k.stat.exists
       - name: Changing Default ZSH Theme to powerlevel10k
         lineinfile:
           path: /home/{{ ansible_user_id }}/.zshrc
@@ -95,13 +88,26 @@
       - name: Adding zsh-autosuggestions
         shell:
           cmd: 'git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions'
-        when: not autosuggestions.stat.exists and autosuggestions.stat.isdir
+        when: not autosuggestions.stat.exists
       - name: Enabling zsh-autosuggestions
         lineinfile:
           path: /home/{{ ansible_user_id }}/.zshrc
           regexp: '^plugins='
           line: 'plugins=(git zsh-autosuggestions)'
-
+      - name: Verifying if vte.sh shortcut exist
+        stat:
+          path: '/etc/profile.d/vte.sh'
+        register: vte
+      - name: Configuring Tilix - creating symbolic link
+        shell:
+          cmd: 'ln -s /etc/profile.d/vte-2.91.sh /etc/profile.d/vte.sh'
+        when: not vte.stat.exists
+        become: true
+      - name: Configuring Tilix - Add .zshrc lines
+        lineinfile:
+          path: /home/{{ ansible_user_id }}/.zshrc
+          line: 'if [ $TILIX_ID ] || [ $VTE_VERSION ]; then source /etc/profile.d/vte.sh; fi'
+          state: present
       - name: Adding autoload to compinit
         lineinfile:
           path: /home/{{ ansible_user_id }}/.zshrc
