@@ -40,6 +40,8 @@
           - gnome-tweak-tool
           - p7zip-full
           - p7zip-rar
+          - snapd
+          - golang-go
 
     - block:
       - name: Changing hostname
