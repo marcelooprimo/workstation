@@ -6,7 +6,7 @@ Maintain single yaml file with all tasks to install and configure apps for my wo
 
 # How this work
 - after fresh installation of ubuntu or ubuntu based S.O, install ```apt install ansible git```
-- clone this repo and execute ```ansible-playbook home_desk.yml --ask-become-pass```
+- clone this repo and access the folder and execute ```ansible-playbook home_desk.yml --ask-become-pass```
 
 # Disclaimer
 This project is a fork of caiodelgadonew personal project. 
