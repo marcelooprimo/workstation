@@ -38,6 +38,8 @@
           - jq
           - mtr
           - gnome-tweak-tool
+          - p7zip-full
+          - p7zip-rar
 
     - block:
       - name: Changing hostname
@@ -154,6 +156,7 @@
           - ms-kubernetes-tools.vscode-kubernetes-tools
           - hashicorp.terraform
           - bbenoist.vagrant
+          - ms-ceintl.vscode-language-pack-pt-br
 
     - block:
       - name: Adding Ulauncher Repository
