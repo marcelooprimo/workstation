@@ -42,6 +42,7 @@
           - p7zip-rar
           - snapd
           - golang-go
+          - xsensors
 
     - block:
       - name: Changing hostname
